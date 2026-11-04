@@ -4,18 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Kiểm kê bằng mã vạch</title>
+  <title>Kiểm kê bằng mã hàng</title>
 
-  <!-- Thư viện đọc Excel -->
+  <!-- Đọc file Excel -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  <!-- Thư viện quét mã vạch bằng camera -->
+  <!-- Quét mã bằng camera -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -26,22 +24,22 @@
     }
 
     .container {
-      max-width: 800px;
+      max-width: 850px;
       margin: auto;
     }
 
     h1 {
       text-align: center;
+      font-size: 24px;
       margin: 10px 0 20px;
-      font-size: 26px;
     }
 
     .card {
-      background: white;
-      padding: 18px;
+      background: #fff;
+      padding: 16px;
       margin-bottom: 15px;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
     }
 
     label {
@@ -54,61 +52,53 @@
     input[type="text"] {
       width: 100%;
       padding: 13px;
+      font-size: 16px;
       border: 1px solid #ccc;
       border-radius: 8px;
-      font-size: 17px;
     }
 
     button {
       width: 100%;
-      padding: 14px;
       margin-top: 10px;
-      border: none;
+      padding: 14px;
+      border: 0;
       border-radius: 8px;
       background: #1677ff;
       color: white;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: bold;
     }
 
-    button:active {
-      opacity: 0.8;
+    button:active { opacity: .8; }
+
+    .green { background: #198754; }
+    .red { background: #dc3545; }
+
+    #reader {
+      width: 100%;
+      margin-top: 12px;
+      overflow: hidden;
     }
 
-    .danger {
-      background: #dc3545;
+    .message {
+      display: none;
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 1.5;
     }
 
     .success {
-      background: #198754;
-    }
-
-    .status {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 8px;
-      display: none;
-      text-align: center;
-      font-size: 16px;
-    }
-
-    .status.ok {
       display: block;
       background: #d1e7dd;
       color: #0f5132;
     }
 
-    .status.error {
+    .error {
       display: block;
       background: #f8d7da;
       color: #842029;
-    }
-
-    #reader {
-      width: 100%;
-      margin-top: 15px;
-      overflow: hidden;
-      border-radius: 10px;
     }
 
     .stats {
@@ -117,46 +107,18 @@
       gap: 10px;
     }
 
-    .stat-box {
+    .stat {
       background: #eef3f8;
+      padding: 14px;
       border-radius: 10px;
-      padding: 15px;
       text-align: center;
     }
 
-    .stat-number {
-      display: block;
-      font-size: 26px;
+    .number {
+      font-size: 25px;
       font-weight: bold;
       color: #1677ff;
-      margin-bottom: 5px;
-    }
-
-    .result-box {
-      margin-top: 15px;
-      padding: 15px;
-      border-radius: 10px;
-      display: none;
-    }
-
-    .result-found {
       display: block;
-      background: #d1e7dd;
-      border: 2px solid #198754;
-    }
-
-    .result-not-found {
-      display: block;
-      background: #f8d7da;
-      border: 2px solid #dc3545;
-    }
-
-    .big-number {
-      font-size: 32px;
-      font-weight: bold;
-      color: #1677ff;
-      text-align: center;
-      margin: 10px 0;
     }
 
     .table-wrap {
@@ -166,14 +128,13 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
+      font-size: 13px;
     }
 
     th, td {
+      padding: 8px;
       border: 1px solid #ddd;
-      padding: 9px;
-      text-align: left;
+      white-space: nowrap;
     }
 
     th {
@@ -181,970 +142,653 @@
       color: white;
     }
 
-    tr:nth-child(even) {
-      background: #f7f7f7;
-    }
-
     .hint {
-      font-size: 14px;
       color: #666;
-      line-height: 1.5;
+      font-size: 13px;
       margin-top: 8px;
-    }
-
-    .empty {
-      text-align: center;
-      color: #777;
-      padding: 20px;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="container">
+<div class="container">
 
-    <h1>📦 KIỂM KÊ BẰNG MÃ VẠCH</h1>
+  <h1>📦 KIỂM KÊ BẰNG MÃ HÀNG</h1>
 
-    <!-- TẢI FILE -->
-    <div class="card">
-      <label>1. Tải file Excel kiểm kê</label>
+  <div class="card">
+    <label>1. Tải file Excel kiểm kê</label>
 
-      <input
-        type="file"
-        id="excelFile"
-        accept=".xlsx,.xls,.csv"
-      >
+    <input type="file" id="excelFile" accept=".xlsx,.xls,.csv">
 
-      <div class="hint">
-        File Excel nên có các cột như:
-        <br>
-        <b>Mã vạch | Tên hàng | Quy cách</b>
-        <br>
-        Ví dụ: Quy cách = 5000, mỗi lần quét sẽ cộng thêm 5000.
-      </div>
-
-      <div id="fileStatus" class="status"></div>
+    <div class="hint">
+      File cần có các cột: Số thứ tự, Mã hàng, Vị trí,
+      Quy cách, Số lượng 1, Số lượng 2, Kết quả.
     </div>
 
-
-    <!-- QUÉT MÃ -->
-    <div class="card">
-      <label>2. Quét mã vạch</label>
-
-      <input
-        type="text"
-        id="barcodeInput"
-        placeholder="Quét hoặc nhập mã vạch tại đây..."
-        autocomplete="off"
-      >
-
-      <button class="success" onclick="checkManualBarcode()">
-        🔍 Kiểm tra mã
-      </button>
-
-      <button onclick="startScanner()">
-        📷 Mở camera để quét mã
-      </button>
-
-      <button
-        id="stopButton"
-        class="danger"
-        onclick="stopScanner()"
-        style="display:none"
-      >
-        ⛔ Tắt camera
-      </button>
-
-      <div id="reader"></div>
-
-      <div id="scanResult" class="result-box"></div>
-    </div>
-
-
-    <!-- THỐNG KÊ -->
-    <div class="card">
-      <label>3. Thống kê</label>
-
-      <div class="stats">
-        <div class="stat-box">
-          <span id="productCount" class="stat-number">0</span>
-          Mã hàng trong file
-        </div>
-
-        <div class="stat-box">
-          <span id="totalScans" class="stat-number">0</span>
-          Tổng lần quét
-        </div>
-
-        <div class="stat-box">
-          <span id="foundCount" class="stat-number">0</span>
-          Mã đã kiểm
-        </div>
-
-        <div class="stat-box">
-          <span id="totalQuantity" class="stat-number">0</span>
-          Tổng số lượng
-        </div>
-      </div>
-    </div>
-
-
-    <!-- DANH SÁCH -->
-    <div class="card">
-      <label>4. Kết quả kiểm kê</label>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Mã vạch</th>
-              <th>Tên hàng</th>
-              <th>Quy cách</th>
-              <th>Lần quét</th>
-              <th>Tổng số lượng</th>
-            </tr>
-          </thead>
-
-          <tbody id="tableBody">
-            <tr>
-              <td colspan="5" class="empty">
-                Hãy tải file Excel để bắt đầu.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <button class="danger" onclick="resetCounts()">
-        🗑️ Xóa kết quả kiểm kê
-      </button>
-    </div>
-
+    <div id="fileMessage" class="message"></div>
   </div>
 
+  <div class="card">
+    <label>2. Quét hoặc nhập mã hàng</label>
+
+    <input
+      type="text"
+      id="barcodeInput"
+      placeholder="Nhập hoặc quét Mã hàng..."
+      autocomplete="off"
+    >
+
+    <button class="green" onclick="checkCode()">
+      🔍 Kiểm tra mã
+    </button>
+
+    <button onclick="startScanner()">
+      📷 Mở camera để quét mã
+    </button>
+
+    <button
+      id="stopButton"
+      class="red"
+      style="display:none"
+      onclick="stopScanner()"
+    >
+      ⛔ Tắt camera
+    </button>
+
+    <div id="reader"></div>
+    <div id="scanMessage" class="message"></div>
+  </div>
+
+  <div class="card">
+    <label>3. Thống kê</label>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="number" id="productCount">0</span>
+        Mã hàng trong file
+      </div>
+
+      <div class="stat">
+        <span class="number" id="totalScans">0</span>
+        Tổng lần quét
+      </div>
+
+      <div class="stat">
+        <span class="number" id="checkedCount">0</span>
+        Mã đã kiểm
+      </div>
+
+      <div class="stat">
+        <span class="number" id="totalResult">0</span>
+        Tổng kết quả
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <label>4. Kết quả kiểm kê</label>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Mã hàng</th>
+            <th>Vị trí</th>
+            <th>Quy cách</th>
+            <th>SL 1</th>
+            <th>SL 2</th>
+            <th>Lần quét</th>
+            <th>Kết quả</th>
+          </tr>
+        </thead>
+
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="7" style="text-align:center">
+              Hãy tải file Excel để bắt đầu.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <button class="red" onclick="resetData()">
+      🗑️ Xóa kết quả kiểm kê
+    </button>
+  </div>
+
+</div>
+
+<script>
+
+let products = [];
+let scanner = null;
+let scannerRunning = false;
+let lastCode = "";
+let lastTime = 0;
+
+
+/* =========================
+   ĐỌC FILE EXCEL
+========================= */
 
-  <script>
-
-    // Dữ liệu sản phẩm
-    let products = [];
-
-    // Camera scanner
-    let html5QrCode = null;
-    let scannerRunning = false;
-
-    // Tránh quét cùng một mã liên tục
-    let lastScannedCode = "";
-    let lastScanTime = 0;
-
-
-    // =====================================================
-    // ĐỌC FILE EXCEL
-    // =====================================================
-
-    document
-      .getElementById("excelFile")
-      .addEventListener("change", loadExcelFile);
-
-
-    function loadExcelFile(event) {
-
-      const file = event.target.files[0];
-
-      if (!file) {
-        return;
-      }
-
-      const status =
-        document.getElementById("fileStatus");
-
-      status.className = "status ok";
-      status.textContent =
-        "Đang đọc file: " + file.name;
-
-      const reader = new FileReader();
-
-      reader.onload = function(e) {
-
-        try {
-
-          const data =
-            new Uint8Array(e.target.result);
+document.getElementById("excelFile")
+  .addEventListener("change", function(event) {
 
-          const workbook =
-            XLSX.read(data, {
-              type: "array"
-            });
+  const file = event.target.files[0];
 
-          const sheetName =
-            workbook.SheetNames[0];
+  if (!file) return;
 
-          const worksheet =
-            workbook.Sheets[sheetName];
+  const reader = new FileReader();
 
-          const rows =
-            XLSX.utils.sheet_to_json(
-              worksheet,
-              {
-                defval: ""
-              }
-            );
+  reader.onload = function(e) {
 
-          products = rows
-            .map(function(row) {
+    try {
 
-              const barcode =
-                getColumnValue(
-                  row,
-                  [
-                    "Mã vạch",
-                    "Mã Vạch",
-                    "MA VACH",
-                    "Ma vach",
-                    "Barcode",
-                    "BARCODE",
-                    "Mã hàng",
-                    "Mã liệu",
-                    "SKU"
-                  ]
-                );
+      const data = new Uint8Array(e.target.result);
 
-              const name =
-                getColumnValue(
-                  row,
-                  [
-                    "Tên hàng",
-                    "Tên sản phẩm",
-                    "Tên liệu",
-                    "Tên Hàng",
-                    "Product",
-                    "Product Name"
-                  ]
-                );
+      const workbook = XLSX.read(data, {
+        type: "array"
+      });
 
-              const unitQuantity =
-                getColumnValue(
-                  row,
-                  [
-                    "Quy cách",
-                    "Số lượng",
-                    "Số lượng mỗi cuộn",
-                    "Quantity",
-                    "QTY"
-                  ]
-                );
+      const sheetName = workbook.SheetNames[0];
 
-              return {
-                barcode:
-                  String(barcode || "").trim(),
+      const worksheet =
+        workbook.Sheets[sheetName];
 
-                name:
-                  String(name || "").trim(),
-
-                unitQuantity:
-                  convertNumber(unitQuantity),
-
-                scans: 0
-              };
-
-            })
-            .filter(function(product) {
-              return product.barcode !== "";
-            });
-
-
-          status.className =
-            "status ok";
-
-          status.textContent =
-            "✅ Đã tải thành công " +
-            products.length +
-            " mã hàng.";
-
-          updateTable();
-          updateStats();
-
-          document
-            .getElementById("barcodeInput")
-            .focus();
-
-        } catch (error) {
-
-          console.error(error);
-
-          status.className =
-            "status error";
-
-          status.textContent =
-            "❌ Không thể đọc file Excel.";
-
-        }
-
-      };
-
-      reader.readAsArrayBuffer(file);
-
-    }
-
-
-    // =====================================================
-    // TÌM GIÁ TRỊ CỘT
-    // =====================================================
-
-    function getColumnValue(row, possibleNames) {
-
-      const keys =
-        Object.keys(row);
-
-      for (
-        let i = 0;
-        i < possibleNames.length;
-        i++
-      ) {
-
-        const target =
-          normalizeText(
-            possibleNames[i]
-          );
-
-        for (
-          let j = 0;
-          j < keys.length;
-          j++
-        ) {
-
-          if (
-            normalizeText(keys[j]) ===
-            target
-          ) {
-
-            return row[keys[j]];
-
-          }
-
-        }
-
-      }
-
-      // Nếu không tìm thấy tên cột,
-      // lấy cột đầu tiên làm mã vạch
-      return "";
-
-    }
-
-
-    function normalizeText(text) {
-
-      return String(text)
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, " ");
-
-    }
-
-
-    // =====================================================
-    // CHUYỂN SỐ
-    // =====================================================
-
-    function convertNumber(value) {
-
-      if (
-        value === null ||
-        value === undefined ||
-        value === ""
-      ) {
-        return 1;
-      }
-
-      if (typeof value === "number") {
-        return value;
-      }
-
-      let text =
-        String(value)
-          .replace(/\./g, "")
-          .replace(/,/g, "")
-          .replace(/[^\d-]/g, "");
-
-      let number =
-        Number(text);
-
-      if (
-        isNaN(number) ||
-        number === 0
-      ) {
-        return 1;
-      }
-
-      return number;
-
-    }
-
-
-    // =====================================================
-    // QUÉT / NHẬP MÃ
-    // =====================================================
-
-    function checkManualBarcode() {
-
-      const input =
-        document.getElementById(
-          "barcodeInput"
-        );
-
-      const code =
-        input.value.trim();
-
-      if (code === "") {
-
-        showResult(
-          "⚠️ Hãy nhập hoặc quét mã vạch.",
-          false
-        );
-
-        return;
-
-      }
-
-      processBarcode(code);
-
-      input.value = "";
-      input.focus();
-
-    }
-
-
-    document
-      .getElementById("barcodeInput")
-      .addEventListener(
-        "keydown",
-        function(event) {
-
-          if (
-            event.key === "Enter"
-          ) {
-
-            event.preventDefault();
-
-            checkManualBarcode();
-
-          }
-
-        }
+      const rows = XLSX.utils.sheet_to_json(
+        worksheet,
+        { defval: "" }
       );
 
+      products = [];
 
-    function processBarcode(code) {
+      rows.forEach(function(row) {
 
-      if (
-        products.length === 0
-      ) {
+        const code = getValue(row, [
+          "Mã hàng",
+          "Mã Hàng",
+          "MA HANG",
+          "Mã vạch",
+          "Barcode"
+        ]);
 
-        showResult(
-          "⚠️ Bạn cần tải file Excel trước.",
-          false
-        );
+        if (!code) return;
 
-        return;
+        products.push({
+          code: String(code).trim(),
 
-      }
+          position: getValue(row, [
+            "Vị trí",
+            "Vị Trí",
+            "Vị trí hàng"
+          ]),
 
-      const cleanCode =
-        String(code).trim();
+          specification: toNumber(
+            getValue(row, [
+              "Quy cách",
+              "Quy Cách"
+            ])
+          ),
 
-      const product =
-        products.find(
-          function(item) {
+          quantity1: getValue(row, [
+            "Số lượng 1",
+            "Số Lượng 1"
+          ]),
 
-            return (
-              item.barcode ===
-              cleanCode
-            );
+          quantity2: getValue(row, [
+            "Số lượng 2",
+            "Số Lượng 2"
+          ]),
 
-          }
-        );
+          scans: 0,
 
-
-      if (product) {
-
-        product.scans += 1;
-
-        const total =
-          product.scans *
-          product.unitQuantity;
-
-        showResult(
-          "✅ ĐÃ GHI NHẬN<br><br>" +
-          "<b>" +
-          escapeHtml(
-            product.name ||
-            "Không có tên hàng"
-          ) +
-          "</b><br>" +
-          "Mã: " +
-          escapeHtml(
-            product.barcode
-          ) +
-          "<br><br>" +
-          "Quy cách mỗi lần: <b>" +
-          formatNumber(
-            product.unitQuantity
-          ) +
-          "</b><br>" +
-          "Đã quét: <b>" +
-          product.scans +
-          " lần</b>" +
-          "<div class='big-number'>" +
-          formatNumber(total) +
-          "</div>" +
-          "<div style='text-align:center'>" +
-          "TỔNG SỐ LƯỢNG" +
-          "</div>",
-          true
-        );
-
-        updateTable();
-        updateStats();
-
-      } else {
-
-        showResult(
-          "❌ KHÔNG TÌM THẤY MÃ<br><br>" +
-          escapeHtml(cleanCode),
-          false
-        );
-
-      }
-
-    }
-
-
-    // =====================================================
-    // CAMERA QUÉT MÃ
-    // =====================================================
-
-    async function startScanner() {
-
-      if (scannerRunning) {
-        return;
-      }
-
-      if (
-        products.length === 0
-      ) {
-
-        showResult(
-          "⚠️ Hãy tải file Excel trước khi quét.",
-          false
-        );
-
-        return;
-
-      }
-
-      try {
-
-        html5QrCode =
-          new Html5Qrcode("reader");
-
-        const cameras =
-          await Html5Qrcode.getCameras();
-
-        if (
-          !cameras ||
-          cameras.length === 0
-        ) {
-
-          showResult(
-            "❌ Không tìm thấy camera.",
-            false
-          );
-
-          return;
-
-        }
-
-        let selectedCamera =
-          cameras[cameras.length - 1].id;
-
-        for (
-          let i = 0;
-          i < cameras.length;
-          i++
-        ) {
-
-          const label =
-            cameras[i].label.toLowerCase();
-
-          if (
-            label.includes("back") ||
-            label.includes("rear") ||
-            label.includes("environment")
-          ) {
-
-            selectedCamera =
-              cameras[i].id;
-
-            break;
-
-          }
-
-        }
-
-
-        await html5QrCode.start(
-
-          selectedCamera,
-
-          {
-            fps: 10,
-
-            qrbox: {
-              width: 280,
-              height: 180
-            },
-
-            aspectRatio: 1.777
-          },
-
-          function(decodedText) {
-
-            const now =
-              Date.now();
-
-            // Không nhận cùng một mã
-            // liên tục trong 2 giây
-            if (
-              decodedText ===
-              lastScannedCode &&
-              now - lastScanTime <
-              2000
-            ) {
-              return;
-            }
-
-            lastScannedCode =
-              decodedText;
-
-            lastScanTime =
-              now;
-
-            processBarcode(
-              decodedText
-            );
-
-          },
-
-          function() {
-            // Bỏ qua lỗi từng khung hình
-          }
-
-        );
-
-        scannerRunning = true;
-
-        document
-          .getElementById(
-            "stopButton"
+          result: toNumber(
+            getValue(row, [
+              "Kết quả",
+              "Kết Quả"
+            ])
           )
-          .style.display =
-          "block";
-
-        showResult(
-          "📷 Camera đang hoạt động. Đưa mã vạch vào khung hình.",
-          true
-        );
-
-      } catch (error) {
-
-        console.error(error);
-
-        showResult(
-          "❌ Không thể mở camera. Hãy cho phép Safari sử dụng camera.",
-          false
-        );
-
-      }
-
-    }
-
-
-    async function stopScanner() {
-
-      if (
-        html5QrCode &&
-        scannerRunning
-      ) {
-
-        try {
-
-          await html5QrCode.stop();
-
-          await html5QrCode.clear();
-
-        } catch (error) {
-
-          console.error(error);
-
-        }
-
-      }
-
-      html5QrCode = null;
-      scannerRunning = false;
-
-      document
-        .getElementById(
-          "reader"
-        )
-        .innerHTML = "";
-
-      document
-        .getElementById(
-          "stopButton"
-        )
-        .style.display =
-        "none";
-
-    }
-
-
-    // =====================================================
-    // HIỂN THỊ KẾT QUẢ
-    // =====================================================
-
-    function showResult(
-      message,
-      success
-    ) {
-
-      const result =
-        document.getElementById(
-          "scanResult"
-        );
-
-      result.className =
-        success
-          ? "result-box result-found"
-          : "result-box result-not-found";
-
-      result.innerHTML =
-        message;
-
-    }
-
-
-    // =====================================================
-    // CẬP NHẬT BẢNG
-    // =====================================================
-
-    function updateTable() {
-
-      const tableBody =
-        document.getElementById(
-          "tableBody"
-        );
-
-      tableBody.innerHTML =
-        "";
-
-      if (
-        products.length === 0
-      ) {
-
-        tableBody.innerHTML =
-          "<tr>" +
-          "<td colspan='5' class='empty'>" +
-          "Chưa có dữ liệu." +
-          "</td>" +
-          "</tr>";
-
-        return;
-
-      }
-
-
-      products.forEach(
-        function(product) {
-
-          const row =
-            document.createElement(
-              "tr"
-            );
-
-          const total =
-            product.scans *
-            product.unitQuantity;
-
-          row.innerHTML =
-            "<td>" +
-            escapeHtml(
-              product.barcode
-            ) +
-            "</td>" +
-
-            "<td>" +
-            escapeHtml(
-              product.name ||
-              ""
-            ) +
-            "</td>" +
-
-            "<td>" +
-            formatNumber(
-              product.unitQuantity
-            ) +
-            "</td>" +
-
-            "<td>" +
-            product.scans +
-            "</td>" +
-
-            "<td><b>" +
-            formatNumber(
-              total
-            ) +
-            "</b></td>";
-
-          tableBody.appendChild(
-            row
-          );
-
-        }
-      );
-
-    }
-
-
-    // =====================================================
-    // CẬP NHẬT THỐNG KÊ
-    // =====================================================
-
-    function updateStats() {
-
-      let totalScans = 0;
-      let foundCount = 0;
-      let totalQuantity = 0;
-
-      products.forEach(
-        function(product) {
-
-          totalScans +=
-            product.scans;
-
-          if (
-            product.scans > 0
-          ) {
-
-            foundCount += 1;
-
-          }
-
-          totalQuantity +=
-            product.scans *
-            product.unitQuantity;
-
-        }
-      );
-
-
-      document
-        .getElementById(
-          "productCount"
-        )
-        .textContent =
-        products.length;
-
-
-      document
-        .getElementById(
-          "totalScans"
-        )
-        .textContent =
-        totalScans;
-
-
-      document
-        .getElementById(
-          "foundCount"
-        )
-        .textContent =
-        foundCount;
-
-
-      document
-        .getElementById(
-          "totalQuantity"
-        )
-        .textContent =
-        formatNumber(
-          totalQuantity
-        );
-
-    }
-
-
-    // =====================================================
-    // XÓA KẾT QUẢ KIỂM KÊ
-    // =====================================================
-
-    function resetCounts() {
-
-      if (
-        products.length === 0
-      ) {
-        return;
-      }
-
-      const confirmReset =
-        confirm(
-          "Bạn có chắc muốn xóa toàn bộ kết quả kiểm kê?"
-        );
-
-      if (
-        !confirmReset
-      ) {
-        return;
-      }
-
-      products.forEach(
-        function(product) {
-          product.scans = 0;
-        }
+        });
+
+      });
+
+      showMessage(
+        "fileMessage",
+        "success",
+        "✅ Đã tải thành công " +
+        products.length +
+        " mã hàng."
       );
 
       updateTable();
       updateStats();
 
-      showResult(
-        "🗑️ Đã xóa kết quả kiểm kê.",
-        true
-      );
+    } catch(error) {
 
+      console.error(error);
+
+      showMessage(
+        "fileMessage",
+        "error",
+        "❌ Không thể đọc file Excel. Hãy kiểm tra lại file."
+      );
     }
 
+  };
 
-    // =====================================================
-    // HÀM HỖ TRỢ
-    // =====================================================
+  reader.readAsArrayBuffer(file);
 
-    function formatNumber(
-      number
-    ) {
+});
 
-      return Number(
-        number
-      ).toLocaleString(
-        "vi-VN"
-      );
+
+/* =========================
+   LẤY GIÁ TRỊ CỘT
+========================= */
+
+function getValue(row, names) {
+
+  const keys = Object.keys(row);
+
+  for (let name of names) {
+
+    const target = normalize(name);
+
+    for (let key of keys) {
+
+      if (normalize(key) === target) {
+        return row[key];
+      }
 
     }
+  }
+
+  return "";
+}
+
+function normalize(text) {
+  return String(text)
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
 
 
-    function escapeHtml(
-      text
-    ) {
+/* =========================
+   KIỂM TRA MÃ
+========================= */
 
-      return String(text)
-        .replace(/&/g, "&amp
+function checkCode() {
+
+  const input =
+    document.getElementById("barcodeInput");
+
+  const code = input.value.trim();
+
+  if (!code) {
+
+    showMessage(
+      "scanMessage",
+      "error",
+      "⚠️ Hãy nhập hoặc quét mã hàng."
+    );
+
+    return;
+  }
+
+  processCode(code);
+
+  input.value = "";
+  input.focus();
+}
+
+
+document.getElementById("barcodeInput")
+  .addEventListener("keydown", function(e) {
+
+  if (e.key === "Enter") {
+    checkCode();
+  }
+
+});
+
+
+/* =========================
+   XỬ LÝ MÃ QUÉT
+========================= */
+
+function processCode(code) {
+
+  if (products.length === 0) {
+
+    showMessage(
+      "scanMessage",
+      "error",
+      "⚠️ Hãy tải file Excel trước."
+    );
+
+    return;
+  }
+
+  const cleanCode = String(code).trim();
+
+  const product = products.find(function(item) {
+    return item.code === cleanCode;
+  });
+
+  if (!product) {
+
+    showMessage(
+      "scanMessage",
+      "error",
+      "❌ Không tìm thấy mã: <b>" +
+      escapeHtml(cleanCode) +
+      "</b>"
+    );
+
+    return;
+  }
+
+  // Mỗi lần quét cộng thêm 1 lần
+  product.scans += 1;
+
+  // Mỗi lần quét cộng Quy cách vào Kết quả
+  product.result += product.specification;
+
+  showMessage(
+    "scanMessage",
+    "success",
+
+    "✅ ĐÃ GHI NHẬN<br><br>" +
+
+    "<b>Mã hàng:</b> " +
+    escapeHtml(product.code) +
+
+    "<br><b>Vị trí:</b> " +
+    escapeHtml(product.position || "-") +
+
+    "<br><b>Quy cách:</b> " +
+    formatNumber(product.specification) +
+
+    "<br><b>Đã quét:</b> " +
+    product.scans +
+    " lần" +
+
+    "<br><br><b>KẾT QUẢ:</b><br>" +
+
+    "<span style='font-size:30px;font-weight:bold'>" +
+    formatNumber(product.result) +
+    "</span>"
+  );
+
+  updateTable();
+  updateStats();
+}
+
+
+/* =========================
+   CAMERA
+========================= */
+
+async function startScanner() {
+
+  if (scannerRunning) return;
+
+  if (products.length === 0) {
+
+    showMessage(
+      "scanMessage",
+      "error",
+      "⚠️ Hãy tải file Excel trước khi mở camera."
+    );
+
+    return;
+  }
+
+  try {
+
+    scanner = new Html5Qrcode("reader");
+
+    await scanner.start(
+
+      { facingMode: "environment" },
+
+      {
+        fps: 10,
+        qrbox: {
+          width: 280,
+          height: 180
+        }
+      },
+
+      function(decodedText) {
+
+        const now = Date.now();
+
+        // Chống quét liên tục cùng một mã
+        if (
+          decodedText === lastCode &&
+          now - lastTime < 2000
+        ) {
+          return;
+        }
+
+        lastCode = decodedText;
+        lastTime = now;
+
+        processCode(decodedText);
+      },
+
+      function() {
+        // Không xử lý lỗi từng khung hình
+      }
+
+    );
+
+    scannerRunning = true;
+
+    document.getElementById("stopButton")
+      .style.display = "block";
+
+  } catch(error) {
+
+    console.error(error);
+
+    showMessage(
+      "scanMessage",
+      "error",
+      "❌ Không thể mở camera. Hãy cho phép Safari sử dụng camera."
+    );
+  }
+}
+
+
+async function stopScanner() {
+
+  if (!scanner || !scannerRunning) return;
+
+  try {
+
+    await scanner.stop();
+    await scanner.clear();
+
+  } catch(error) {
+    console.error(error);
+  }
+
+  scanner = null;
+  scannerRunning = false;
+
+  document.getElementById("reader")
+    .innerHTML = "";
+
+  document.getElementById("stopButton")
+    .style.display = "none";
+}
+
+
+/* =========================
+   CẬP NHẬT BẢNG
+========================= */
+
+function updateTable() {
+
+  const body =
+    document.getElementById("tableBody");
+
+  body.innerHTML = "";
+
+  if (products.length === 0) {
+
+    body.innerHTML =
+      "<tr><td colspan='7' style='text-align:center'>" +
+      "Hãy tải file Excel để bắt đầu." +
+      "</td></tr>";
+
+    return;
+  }
+
+  products.forEach(function(product) {
+
+    const row =
+      document.createElement("tr");
+
+    row.innerHTML =
+      "<td>" + escapeHtml(product.code) + "</td>" +
+      "<td>" + escapeHtml(product.position || "") + "</td>" +
+      "<td>" + formatNumber(product.specification) + "</td>" +
+      "<td>" + escapeHtml(product.quantity1) + "</td>" +
+      "<td>" + escapeHtml(product.quantity2) + "</td>" +
+      "<td>" + product.scans + "</td>" +
+      "<td><b>" +
+      formatNumber(product.result) +
+      "</b></td>";
+
+    body.appendChild(row);
+  });
+}
+
+
+/* =========================
+   THỐNG KÊ
+========================= */
+
+function updateStats() {
+
+  let totalScans = 0;
+  let checkedCount = 0;
+  let totalResult = 0;
+
+  products.forEach(function(product) {
+
+    totalScans += product.scans;
+
+    if (product.scans > 0) {
+      checkedCount += 1;
+    }
+
+    totalResult += product.result;
+  });
+
+  document.getElementById("productCount")
+    .textContent = products.length;
+
+  document.getElementById("totalScans")
+    .textContent = totalScans;
+
+  document.getElementById("checkedCount")
+    .textContent = checkedCount;
+
+  document.getElementById("totalResult")
+    .textContent = formatNumber(totalResult);
+}
+
+
+/* =========================
+   XÓA KẾT QUẢ
+========================= */
+
+function resetData() {
+
+  if (products.length === 0) return;
+
+  if (!confirm("Bạn có chắc muốn xóa kết quả kiểm kê?")) {
+    return;
+  }
+
+  products.forEach(function(product) {
+    product.scans = 0;
+    product.result = 0;
+  });
+
+  updateTable();
+  updateStats();
+
+  showMessage(
+    "scanMessage",
+    "success",
+    "🗑️ Đã xóa kết quả kiểm kê."
+  );
+}
+
+
+/* =========================
+   HÀM HỖ TRỢ
+========================= */
+
+function toNumber(value) {
+
+  if (
+    value === "" ||
+    value === null ||
+    value === undefined
+  ) {
+    return 0;
+  }
+
+  if (typeof value === "number") {
+    return value;
+  }
+
+  let text = String(value)
+    .replace(/\./g, "")
+    .replace(/,/g, "")
+    .replace(/[^\d-]/g, "");
+
+  return Number(text) || 0;
+}
+
+
+function formatNumber(number) {
+  return Number(number || 0)
+    .toLocaleString("vi-VN");
+}
+
+
+function showMessage(id, type, message) {
+
+  const element =
+    document.getElementById(id);
+
+  element.className =
+    "message " + type;
+
+  element.innerHTML = message;
+}
+
+
+function escapeHtml(text) {
+
+  return String(text === undefined ? "" : text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+</script>
+
+</body>
+</html>
