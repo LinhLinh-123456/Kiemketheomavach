@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiểm đếm mã vạch</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#f4f6f8;color:#222}
+header{background:#1f5f8b;color:white;padding:16px;text-align:center}
+main{max-width:900px;margin:auto;padding:14px}
+.card{background:white;border-radius:10px;padding:16px;margin:12px 0;box-shadow:0 1px 5px #bbb}
+button{padding:12px 16px;margin:4px;border:0;border-radius:7px;background:#1f5f8b;color:white;font-size:15px}
+button.secondary{background:#666} button.danger{background:#b33}
+input,textarea{width:100%;box-sizing:border-box;padding:10px;margin:6px 0;font-size:16px}
+#video{width:100%;max-height:420px;background:#111;border-radius:8px}
+#result{font-size:20px;font-weight:bold;padding:10px;background:#eaf6ea;border-radius:7px;min-height:25px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px;border-bottom:1px solid #ddd;text-align:left}
+td:last-child,th:last-child{text-align:center}
+.qty{font-weight:bold;font-size:17px}
+.note{font-size:13px;color:#555;line-height:1.45}
+#manual{display:flex;gap:6px} #manual input{flex:1}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header><h2 style="margin:0">📦 KIỂM ĐẾM VẬT LIỆU BẰNG MÃ VẠCH</h2></header>
+<main>
+<div class="card">
+<b>1. Nhập danh sách mã liệu có sẵn</b>
+<p class="note">Dán dữ liệu theo dạng: <b>Mã liệu, Quy cách</b> — mỗi dòng một mã.<br>Ví dụ: VL001,Ống thép 20mm</p>
+<textarea id="dataInput" rows="5" placeholder="VL001,Ống thép 20mm&#10;VL002,Ống thép 25mm"></textarea>
+<button onclick="loadData()">Nạp danh sách</button>
+<button class="secondary" onclick="downloadTemplate()">Tải mẫu CSV</button>
+</div>
+
+<div class="card">
+<b>2. Quét mã vạch</b>
+<p class="note">Cho phép trình duyệt sử dụng camera. Camera thường yêu cầu mở ứng dụng qua HTTPS hoặc localhost.</p>
+<video id="video" playsinline></video><br>
+<button onclick="startCamera()">📷 Bắt đầu quét</button>
+<button class="secondary" onclick="stopCamera()">Dừng camera</button>
+<div id="manual">
+<input id="manualCode" placeholder="Hoặc nhập mã thủ công">
+<button onclick="processCode(document.getElementById('manualCode').value)">Xác nhận</button>
+</div>
+<div id="result">Sẵn sàng.</div>
+</div>
+
+<div class="card">
+<b>3. Kết quả kiểm đếm</b>
+<div style="margin:8px 0">
+<button onclick="exportCSV()">⬇ Xuất kết quả CSV/Excel</button>
+<button class="danger" onclick="resetCounts()">↺ Đặt lại số lượng</button>
+</div>
+<table>
+<thead><tr><th>Mã liệu</th><th>Quy cách</th><th>Số lượng</th></tr></thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+</main>
+
+<script>
+let items = JSON.parse(localStorage.getItem('barcodeItems') || '[]');
+let stream=null, detector=null, scanning=false, lastCode='', lastTime=0;
+
+function render(){
+ const body=document.getElementById('tableBody'); body.innerHTML='';
+ items.forEach(x=>{
+   const tr=document.createElement('tr');
+   tr.innerHTML=`<td>${escapeHtml(x.code)}</td><td>${escapeHtml(x.spec)}</td><td class="qty">${x.qty}</td>`;
+   body.appendChild(tr);
+ });
+ localStorage.setItem('barcodeItems',JSON.stringify(items));
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function loadData(){
+ const lines=document.getElementById('dataInput').value.trim().split(/\n+/);
+ const newItems=[];
+ lines.forEach(line=>{
+   let p=line.split(/[,;\t]/); if(p[0]&&p[0].trim()) newItems.push({code:p[0].trim(),spec:(p.slice(1).join(' ').trim()||''),qty:0});
+ });
+ if(!newItems.length){alert('Chưa có dữ liệu hợp lệ.');return;}
+ items=newItems; render(); document.getElementById('result').textContent='Đã nạp '+items.length+' mã liệu.';
+}
+function processCode(code){
+ code=String(code||'').trim(); if(!code)return;
+ const now=Date.now(); if(code===lastCode && now-lastTime<1200)return;
+ lastCode=code; lastTime=now;
+ const item=items.find(x=>x.code===code);
+ if(item){item.qty++; render(); document.getElementById('result').textContent='✓ '+item.code+' — '+item.spec+' | SỐ LƯỢNG: '+item.qty;}
+ else document.getElementById('result').textContent='⚠ Không tìm thấy mã: '+code;
+ document.getElementById('manualCode').value='';
+ if(navigator.vibrate)navigator.vibrate(80);
+}
+async function startCamera(){
+ if(!('BarcodeDetector' in window)){document.getElementById('result').textContent='Trình duyệt này chưa hỗ trợ quét tự động. Hãy dùng Chrome trên Android hoặc nhập mã thủ công.';return;}
+ try{
+  const formats=await BarcodeDetector.getSupportedFormats();
+  detector=new BarcodeDetector({formats:formats.filter(f=>['ean_13','ean_8','code_128','code_39','upc_a','upc_e','itf'].includes(f))});
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}});
+  const video=document.getElementById('video'); video.srcObject=stream; await video.play(); scanning=true; scanLoop();
+ }catch(e){document.getElementById('result').textContent='Không mở được camera: '+e.message;}
+}
+async function scanLoop(){
+ const video=document.getElementById('video');
+ while(scanning){
+  try{if(video.readyState>=2){const codes=await detector.detect(video); if(codes.length)processCode(codes[0].rawValue);}}catch(e){}
+  await new Promise(r=>setTimeout(r,250));
+ }
+}
+function stopCamera(){scanning=false;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}document.getElementById('video').srcObject=null;}
+function resetCounts(){if(confirm('Đặt tất cả số lượng về 0?')){items.forEach(x=>x.qty=0);render();}}
+function exportCSV(){
+ let csv='Mã liệu,Quy cách,Số lượng\n'+items.map(x=>`"${x.code.replace(/"/g,'""')}","${x.spec.replace(/"/g,'""')}",${x.qty}`).join('\n');
+ const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download='ket_qua_kiem_dem.csv';a.click();
+}
+function downloadTemplate(){
+ const blob=new Blob(['Mã liệu,Quy cách\nVL001,Ống thép 20mm\nVL002,Ống thép 25mm'],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download='mau_ma_lieu.csv';a.click();
+}
+document.getElementById('manualCode').addEventListener('keydown',e=>{if(e.key==='Enter')processCode(e.target.value);});
+render();
+</script>
+</body></html>
