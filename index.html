@@ -5,13 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kiểm kê bằng mã hàng</title>
 
-<!-- Thư viện đọc file Excel -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-* {
-    box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
     margin: 0;
@@ -67,17 +64,9 @@ button {
     cursor: pointer;
 }
 
-.btn-green {
-    background: #198754;
-}
-
-.btn-blue {
-    background: #1677ff;
-}
-
-.btn-red {
-    background: #dc3545;
-}
+.btn-green { background: #198754; }
+.btn-blue { background: #1677ff; }
+.btn-red { background: #dc3545; }
 
 .note {
     color: #666;
@@ -143,26 +132,13 @@ tr:nth-child(even) {
     font-weight: bold;
 }
 
-.success {
-    color: #198754;
-}
-
-.error {
-    color: #dc3545;
-}
+.success { color: #198754; }
+.error { color: #dc3545; }
 
 @media (max-width: 600px) {
-    h1 {
-        font-size: 25px;
-    }
-
-    .card {
-        padding: 20px;
-    }
-
-    .stat-number {
-        font-size: 34px;
-    }
+    h1 { font-size: 25px; }
+    .card { padding: 20px; }
+    .stat-number { font-size: 34px; }
 }
 </style>
 </head>
@@ -171,505 +147,488 @@ tr:nth-child(even) {
 
 <div class="container">
 
-    <h1>📦 KIỂM KÊ BẰNG MÃ HÀNG</h1>
+<h1>📦 KIỂM KÊ BẰNG MÃ HÀNG</h1>
 
-    <div class="card">
-        <h2>1. Tải file Excel kiểm kê</h2>
+<div class="card">
+    <h2>1. Tải file Excel kiểm kê</h2>
 
-        <input type="file" id="excelFile" accept=".xlsx,.xls">
+    <input type="file" id="excelFile" accept=".xlsx,.xls">
 
-        <p class="note">
-            App phù hợp với file có 2 dòng đầu ghi tự do.<br>
-            App sẽ tự tìm dòng tiêu đề có <b>AX旧料号</b> và đọc dữ liệu trong sheet <b>SMD</b>.
-        </p>
+    <p class="note">
+        App phù hợp với file có 2 dòng đầu ghi tự do.<br>
+        App tự tìm sheet dữ liệu và tự nhận cột Mã hàng.
+    </p>
 
-        <div id="fileMessage" class="message"></div>
-    </div>
-
-
-    <div class="card">
-        <h2>2. Quét hoặc nhập mã hàng</h2>
-
-        <input
-            type="text"
-            id="barcodeInput"
-            placeholder="Nhập hoặc quét Mã hàng..."
-            autocomplete="off"
-        >
-
-        <button class="btn-green" onclick="checkCode()">
-            🔍 Kiểm tra mã
-        </button>
-
-        <button class="btn-blue" onclick="openCamera()">
-            📷 Mở camera để quét mã
-        </button>
-
-        <div id="scanMessage" class="message"></div>
-    </div>
-
-
-    <div class="card">
-        <h2>3. Thống kê</h2>
-
-        <div class="stats">
-            <div class="stat-box">
-                <div class="stat-number" id="totalItems">0</div>
-                <div class="stat-label">Mã hàng trong file</div>
-            </div>
-
-            <div class="stat-box">
-                <div class="stat-number" id="totalScans">0</div>
-                <div class="stat-label">Tổng lần quét</div>
-            </div>
-
-            <div class="stat-box">
-                <div class="stat-number" id="checkedItems">0</div>
-                <div class="stat-label">Mã đã kiểm</div>
-            </div>
-
-            <div class="stat-box">
-                <div class="stat-number" id="totalResult">0</div>
-                <div class="stat-label">Tổng kết quả</div>
-            </div>
-        </div>
-    </div>
-
-
-    <div class="card">
-        <h2>4. Kết quả kiểm kê</h2>
-
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>STT</th>
-                        <th>Mã hàng</th>
-                        <th>Vị trí</th>
-                        <th>Quy cách</th>
-                        <th>SL 1</th>
-                        <th>SL 2</th>
-                        <th>Lần quét</th>
-                        <th>Kết quả</th>
-                    </tr>
-                </thead>
-
-                <tbody id="resultBody">
-                    <tr>
-                        <td colspan="8">
-                            Hãy tải file Excel để bắt đầu.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <button class="btn-red" onclick="clearResults()">
-            🗑️ Xóa kết quả kiểm kê
-        </button>
-    </div>
-
+    <div id="fileMessage" class="message"></div>
 </div>
 
+<div class="card">
+    <h2>2. Quét hoặc nhập mã hàng</h2>
+
+    <input type="text" id="barcodeInput"
+        placeholder="Nhập hoặc quét Mã hàng..."
+        autocomplete="off">
+
+    <button class="btn-green" onclick="checkCode()">
+        🔍 Kiểm tra mã
+    </button>
+
+    <button class="btn-blue" onclick="openCamera()">
+        📷 Mở camera để quét mã
+    </button>
+
+    <div id="scanMessage" class="message"></div>
+</div>
+
+<div class="card">
+    <h2>3. Thống kê</h2>
+
+    <div class="stats">
+        <div class="stat-box">
+            <div class="stat-number" id="totalItems">0</div>
+            <div class="stat-label">Mã hàng trong file</div>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-number" id="totalScans">0</div>
+            <div class="stat-label">Tổng lần quét</div>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-number" id="checkedItems">0</div>
+            <div class="stat-label">Mã đã kiểm</div>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-number" id="totalResult">0</div>
+            <div class="stat-label">Tổng kết quả</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>4. Kết quả kiểm kê</h2>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Mã hàng</th>
+                    <th>Vị trí</th>
+                    <th>Quy cách</th>
+                    <th>SL 1</th>
+                    <th>SL 2</th>
+                    <th>Lần quét</th>
+                    <th>Kết quả</th>
+                </tr>
+            </thead>
+
+            <tbody id="resultBody">
+                <tr>
+                    <td colspan="8">Hãy tải file Excel để bắt đầu.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <button class="btn-red" onclick="clearResults()">
+        🗑️ Xóa kết quả kiểm kê
+    </button>
+</div>
+
+</div>
 
 <script>
 
 let inventoryData = [];
 let totalScans = 0;
 
+const excelFile = document.getElementById("excelFile");
+const fileMessage = document.getElementById("fileMessage");
 
-/* =========================
-   ĐỌC FILE EXCEL
-========================= */
-
-document.getElementById("excelFile").addEventListener("change", function(event) {
+excelFile.addEventListener("change", function(event) {
 
     const file = event.target.files[0];
-
     if (!file) return;
 
-    document.getElementById("fileMessage").innerHTML =
-        "Đang đọc file Excel...";
+    if (typeof XLSX === "undefined") {
+        fileMessage.innerHTML =
+            '<span class="error">✗ Không tải được thư viện đọc Excel. Hãy kiểm tra kết nối Internet rồi tải lại trang.</span>';
+        return;
+    }
+
+    inventoryData = [];
+    totalScans = 0;
+    updateStats();
+
+    fileMessage.innerHTML = "Đang chuẩn bị đọc file...";
 
     const reader = new FileReader();
 
+    reader.onerror = function() {
+        fileMessage.innerHTML =
+            '<span class="error">✗ iPhone không thể đọc file này.</span>';
+    };
+
     reader.onload = function(e) {
 
-        try {
+        // Cho Safari có thời gian cập nhật màn hình
+        fileMessage.innerHTML = "Đang xử lý dữ liệu Excel...";
 
-            const data = new Uint8Array(e.target.result);
+        setTimeout(function() {
 
-            const workbook = XLSX.read(data, {
-                type: "array"
-            });
+            try {
 
+                const data = new Uint8Array(e.target.result);
 
-            /* Ưu tiên đọc sheet SMD */
+                // Giới hạn số dòng đọc để giảm tải cho iPhone
+                const workbook = XLSX.read(data, {
+                    type: "array",
+                    cellDates: false,
+                    cellNF: false,
+                    cellStyles: false,
+                    sheetRows: 1000
+                });
 
-            let sheetName = "SMD";
-
-            if (!workbook.SheetNames.includes(sheetName)) {
-                sheetName = workbook.SheetNames[0];
-            }
-
-
-            const worksheet = workbook.Sheets[sheetName];
-
-
-            /* Đọc toàn bộ sheet dạng mảng */
-
-            const rows = XLSX.utils.sheet_to_json(
-                worksheet,
-                {
-                    header: 1,
-                    defval: ""
-                }
-            );
-
-
-            /* =========================
-               TỰ TÌM DÒNG TIÊU ĐỀ
-
-               Không cố định dòng 1 hoặc dòng 3.
-               Vì 2 dòng đầu có thể ghi tự do.
-            ========================= */
-
-            let headerRowIndex = -1;
-
-            for (let i = 0; i < rows.length; i++) {
-
-                const rowText = rows[i]
-                    .map(cell => String(cell).trim())
-                    .join("|");
-
-                if (
-                    rowText.includes("AX旧料号") ||
-                    rowText.includes("Mã hàng") ||
-                    rowText.includes("料号")
-                ) {
-                    headerRowIndex = i;
-                    break;
-                }
-            }
-
-
-            if (headerRowIndex === -1) {
-
-                throw new Error(
-                    "Không tìm thấy dòng tiêu đề có cột AX旧料号 hoặc Mã hàng."
+                // Ưu tiên sheet SMD
+                let sheetName = workbook.SheetNames.find(
+                    name => String(name).trim().toUpperCase() === "SMD"
                 );
-            }
 
+                // Nếu không có SMD, tìm sheet có cột mã hàng
+                if (!sheetName) {
 
-            const headers = rows[headerRowIndex]
-                .map(h => String(h).trim());
+                    for (const name of workbook.SheetNames) {
 
+                        const testSheet = workbook.Sheets[name];
 
-            /* Tìm vị trí cột theo tên */
+                        const testRows = XLSX.utils.sheet_to_json(
+                            testSheet,
+                            {
+                                header: 1,
+                                defval: "",
+                                range: 0
+                            }
+                        );
 
-            function findColumn(names) {
+                        let found = false;
 
-                for (const name of names) {
+                        for (let i = 0; i < Math.min(testRows.length, 20); i++) {
 
-                    const index = headers.findIndex(header =>
-                        header === name ||
-                        header.includes(name)
+                            const text = testRows[i]
+                                .map(x => String(x).trim())
+                                .join("|");
+
+                            if (
+                                text.includes("AXI料号") ||
+                                text.includes("AX旧料号") ||
+                                text.includes("料号") ||
+                                text.includes("Mã hàng")
+                            ) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (found) {
+                            sheetName = name;
+                            break;
+                        }
+                    }
+                }
+
+                if (!sheetName) {
+                    sheetName = workbook.SheetNames[0];
+                }
+
+                const worksheet = workbook.Sheets[sheetName];
+
+                const rows = XLSX.utils.sheet_to_json(
+                    worksheet,
+                    {
+                        header: 1,
+                        defval: "",
+                        raw: false
+                    }
+                );
+
+                // Tìm dòng tiêu đề trong 20 dòng đầu
+                let headerRowIndex = -1;
+
+                for (let i = 0; i < Math.min(rows.length, 20); i++) {
+
+                    const rowText = rows[i]
+                        .map(cell => String(cell).trim())
+                        .join("|");
+
+                    if (
+                        rowText.includes("AXI料号") ||
+                        rowText.includes("AX旧料号") ||
+                        rowText.includes("料号") ||
+                        rowText.includes("Mã hàng")
+                    ) {
+                        headerRowIndex = i;
+                        break;
+                    }
+                }
+
+                if (headerRowIndex === -1) {
+                    throw new Error(
+                        "Không tìm thấy dòng tiêu đề chứa Mã hàng. App đã kiểm tra 20 dòng đầu."
                     );
-
-                    if (index !== -1) return index;
                 }
 
-                return -1;
-            }
-
-
-            const sttCol = 0;
-
-            const codeCol = findColumn([
-                "AX旧料号",
-                "Mã hàng",
-                "料号"
-            ]);
-
-            const nameCol = findColumn([
-                "名称",
-                "Tên hàng",
-                "Quy cách"
-            ]);
-
-            const quantityCol = findColumn([
-                "数量",
-                "Số lượng 1"
-            ]);
-
-            const warehouseNeedCol = findColumn([
-                "仓库应发",
-                "Số lượng 2"
-            ]);
-
-            const warehouseActualCol = findColumn([
-                "仓库实发",
-                "Kết quả"
-            ]);
-
-
-            if (codeCol === -1) {
-
-                throw new Error(
-                    "Không tìm thấy cột Mã hàng (AX旧料号)."
+                const headers = rows[headerRowIndex].map(
+                    h => String(h).trim()
                 );
+
+                function findColumn(names) {
+
+                    for (const name of names) {
+
+                        const index = headers.findIndex(header => {
+
+                            const h = String(header)
+                                .replace(/\s/g, "")
+                                .toLowerCase();
+
+                            const n = String(name)
+                                .replace(/\s/g, "")
+                                .toLowerCase();
+
+                            return h === n || h.includes(n);
+                        });
+
+                        if (index !== -1) return index;
+                    }
+
+                    return -1;
+                }
+
+                const codeCol = findColumn([
+                    "AXI料号",
+                    "AX旧料号",
+                    "AX料号",
+                    "料号",
+                    "Mã hàng"
+                ]);
+
+                if (codeCol === -1) {
+                    throw new Error(
+                        "Đã tìm thấy dòng tiêu đề nhưng không xác định được cột Mã hàng."
+                    );
+                }
+
+                // Các cột khác tự nhận nếu có
+                const positionCol = findColumn([
+                    "位置",
+                    "Vị trí",
+                    "库位"
+                ]);
+
+                const specificationCol = findColumn([
+                    "名称",
+                    "规格",
+                    "Quy cách",
+                    "Tên hàng"
+                ]);
+
+                const quantity1Col = findColumn([
+                    "数量",
+                    "Số lượng 1",
+                    "SL 1"
+                ]);
+
+                const quantity2Col = findColumn([
+                    "仓库应发",
+                    "Số lượng 2",
+                    "SL 2"
+                ]);
+
+                inventoryData = [];
+
+                for (let i = headerRowIndex + 1; i < rows.length; i++) {
+
+                    const row = rows[i];
+
+                    const code = row[codeCol] !== undefined
+                        ? String(row[codeCol]).trim()
+                        : "";
+
+                    // Bỏ qua dòng trống
+                    if (!code) continue;
+
+                    // Bỏ qua dòng tổng kết nếu có
+                    if (
+                        code.includes("合计") ||
+                        code.includes("总计")
+                    ) continue;
+
+                    inventoryData.push({
+
+                        stt: inventoryData.length + 1,
+
+                        code: code,
+
+                        position:
+                            positionCol !== -1
+                            ? String(row[positionCol] || "").trim()
+                            : "",
+
+                        specification:
+                            specificationCol !== -1
+                            ? String(row[specificationCol] || "").trim()
+                            : "",
+
+                        quantity1:
+                            quantity1Col !== -1
+                            ? parseNumber(row[quantity1Col])
+                            : 0,
+
+                        quantity2:
+                            quantity2Col !== -1
+                            ? parseNumber(row[quantity2Col])
+                            : 0,
+
+                        scans: 0,
+                        result: 0
+                    });
+                }
+
+                if (inventoryData.length === 0) {
+                    throw new Error(
+                        "File đã mở nhưng không tìm thấy mã hàng."
+                    );
+                }
+
+                updateStats();
+                renderTable();
+
+                fileMessage.innerHTML =
+                    `<span class="success">
+                    ✓ Đã tải thành công ${inventoryData.length} mã hàng.<br>
+                    Sheet đang sử dụng: ${escapeHtml(sheetName)}
+                    </span>`;
+
+            } catch (error) {
+
+                console.error(error);
+
+                inventoryData = [];
+                totalScans = 0;
+
+                updateStats();
+
+                document.getElementById("resultBody").innerHTML =
+                    `<tr>
+                        <td colspan="8">
+                            Không đọc được dữ liệu file.
+                        </td>
+                    </tr>`;
+
+                fileMessage.innerHTML =
+                    `<span class="error">
+                    ✗ ${escapeHtml(error.message)}
+                    </span>`;
             }
 
-
-            /* =========================
-               ĐỌC DỮ LIỆU
-            ========================= */
-
-            inventoryData = [];
-
-            for (
-                let i = headerRowIndex + 1;
-                i < rows.length;
-                i++
-            ) {
-
-                const row = rows[i];
-
-                const code = row[codeCol] !== undefined
-                    ? String(row[codeCol]).trim()
-                    : "";
-
-
-                /* Bỏ qua dòng không có mã hàng */
-
-                if (!code) continue;
-
-
-                const item = {
-
-                    stt: row[sttCol] || inventoryData.length + 1,
-
-                    code: code,
-
-                    /* File hiện tại: cột thứ 3 là vị trí */
-                    position:
-                        row[2] !== undefined
-                        ? String(row[2]).trim()
-                        : "",
-
-                    specification:
-                        nameCol !== -1
-                        ? String(row[nameCol] || "")
-                        : "",
-
-                    quantity1:
-                        quantityCol !== -1
-                        ? Number(row[quantityCol]) || 0
-                        : 0,
-
-                    quantity2:
-                        warehouseNeedCol !== -1
-                        ? Number(row[warehouseNeedCol]) || 0
-                        : 0,
-
-                    originalResult:
-                        warehouseActualCol !== -1
-                        ? Number(row[warehouseActualCol]) || 0
-                        : 0,
-
-                    scans: 0,
-
-                    result: 0
-                };
-
-
-                inventoryData.push(item);
-            }
-
-
-            if (inventoryData.length === 0) {
-
-                throw new Error(
-                    "Đã đọc file nhưng không tìm thấy dữ liệu mã hàng."
-                );
-            }
-
-
-            updateStats();
-            renderTable();
-
-
-            document.getElementById("fileMessage").innerHTML =
-                `<span class="success">
-                ✓ Đã tải thành công ${inventoryData.length} mã hàng
-                từ sheet "${sheetName}".
-                </span>`;
-
-
-        } catch (error) {
-
-            console.error(error);
-
-            inventoryData = [];
-
-            updateStats();
-
-            document.getElementById("resultBody").innerHTML =
-                `<tr>
-                    <td colspan="8">
-                        Không đọc được file.
-                    </td>
-                </tr>`;
-
-            document.getElementById("fileMessage").innerHTML =
-                `<span class="error">
-                ✗ Lỗi: ${error.message}
-                </span>`;
-        }
+        }, 100);
 
     };
 
-
     reader.readAsArrayBuffer(file);
-
 });
 
 
-/* =========================
-   KIỂM TRA / QUÉT MÃ
-========================= */
+function parseNumber(value) {
+
+    if (value === null || value === undefined || value === "") {
+        return 0;
+    }
+
+    const text = String(value)
+        .replace(/,/g, "")
+        .replace(/\s/g, "");
+
+    const number = Number(text);
+
+    return isNaN(number) ? 0 : number;
+}
+
 
 function checkCode() {
 
     if (inventoryData.length === 0) {
-
-        showScanMessage(
-            "Hãy tải file Excel trước!",
-            false
-        );
-
+        showScanMessage("Hãy tải file Excel trước!", false);
         return;
     }
-
 
     const input = document.getElementById("barcodeInput");
-
     const code = input.value.trim();
 
-
     if (!code) {
-
-        showScanMessage(
-            "Vui lòng nhập hoặc quét mã hàng.",
-            false
-        );
-
+        showScanMessage("Vui lòng nhập hoặc quét mã hàng.", false);
         return;
     }
-
 
     const item = inventoryData.find(item =>
         item.code === code
     );
 
-
     if (!item) {
-
-        showScanMessage(
-            `Không tìm thấy mã: ${code}`,
-            false
-        );
-
+        showScanMessage(`Không tìm thấy mã: ${code}`, false);
         input.select();
-
         return;
     }
 
-
-    /* Mỗi lần quét cộng 1 lần */
-
     item.scans += 1;
-
     totalScans += 1;
 
-
-    /* Kết quả = số lần quét × SL 1 */
-
-    item.result =
-        item.scans * item.quantity1;
-
+    // Kết quả = số lần quét × SL 1
+    item.result = item.scans * item.quantity1;
 
     updateStats();
-
     renderTable();
-
 
     showScanMessage(
         `✓ Đã kiểm mã ${code}. Lần quét: ${item.scans}`,
         true
     );
 
-
     input.value = "";
-
     input.focus();
-
 }
 
 
-/* Nhấn Enter cũng kiểm tra */
-
-document
-.getElementById("barcodeInput")
+document.getElementById("barcodeInput")
 .addEventListener("keydown", function(event) {
-
     if (event.key === "Enter") {
-
         checkCode();
     }
-
 });
 
 
-/* =========================
-   HIỂN THỊ BẢNG
-========================= */
-
 function renderTable() {
 
-    const body =
-        document.getElementById("resultBody");
-
+    const body = document.getElementById("resultBody");
 
     if (inventoryData.length === 0) {
-
         body.innerHTML =
-            `<tr>
-                <td colspan="8">
-                    Hãy tải file Excel để bắt đầu.
-                </td>
-            </tr>`;
-
+            `<tr><td colspan="8">
+                Hãy tải file Excel để bắt đầu.
+            </td></tr>`;
         return;
     }
 
-
     let html = "";
-
 
     inventoryData.forEach(item => {
 
-        let status = "";
-
-        if (item.scans === 0) {
-
-            status = "Chưa kiểm";
-
-        } else {
-
-            status = "Đã kiểm";
-        }
-
+        const status =
+            item.scans > 0
+            ? "Đã kiểm"
+            : "Chưa kiểm";
 
         html += `
         <tr>
@@ -681,167 +640,89 @@ function renderTable() {
             <td>${formatNumber(item.quantity2)}</td>
             <td>${item.scans}</td>
             <td>${formatNumber(item.result)}<br>${status}</td>
-        </tr>
-        `;
-
+        </tr>`;
     });
 
-
     body.innerHTML = html;
-
 }
 
-
-/* =========================
-   THỐNG KÊ
-========================= */
 
 function updateStats() {
 
-    const checked =
-        inventoryData.filter(
-            item => item.scans > 0
-        ).length;
+    const checked = inventoryData.filter(
+        item => item.scans > 0
+    ).length;
 
+    const totalResult = inventoryData.reduce(
+        (sum, item) => sum + item.result,
+        0
+    );
 
-    const totalResult =
-        inventoryData.reduce(
-            (sum, item) =>
-                sum + item.result,
-            0
-        );
-
-
-    document.getElementById(
-        "totalItems"
-    ).textContent =
+    document.getElementById("totalItems").textContent =
         inventoryData.length;
 
-
-    document.getElementById(
-        "totalScans"
-    ).textContent =
+    document.getElementById("totalScans").textContent =
         totalScans;
 
-
-    document.getElementById(
-        "checkedItems"
-    ).textContent =
+    document.getElementById("checkedItems").textContent =
         checked;
 
-
-    document.getElementById(
-        "totalResult"
-    ).textContent =
+    document.getElementById("totalResult").textContent =
         formatNumber(totalResult);
-
 }
 
-
-/* =========================
-   XÓA KẾT QUẢ
-========================= */
 
 function clearResults() {
 
     if (!inventoryData.length) return;
 
-
-    if (
-        !confirm(
-            "Bạn có chắc muốn xóa toàn bộ kết quả kiểm kê?"
-        )
-    ) {
+    if (!confirm("Bạn có chắc muốn xóa toàn bộ kết quả kiểm kê?")) {
         return;
     }
 
-
     inventoryData.forEach(item => {
-
         item.scans = 0;
         item.result = 0;
-
     });
 
-
     totalScans = 0;
-
 
     updateStats();
     renderTable();
 
-
-    showScanMessage(
-        "Đã xóa kết quả kiểm kê.",
-        true
-    );
-
+    showScanMessage("Đã xóa kết quả kiểm kê.", true);
 }
 
-
-/* =========================
-   CAMERA
-
-   Phần này cần thêm thư viện
-   quét mã riêng nếu muốn
-   camera tự nhận barcode.
-========================= */
 
 function openCamera() {
-
     alert(
-        "Chức năng camera có thể được bổ sung tiếp bằng thư viện quét mã vạch. Hiện tại bạn vẫn có thể dùng máy quét mã hoặc nhập mã trực tiếp."
+        "Chức năng quét camera sẽ được bổ sung bằng thư viện quét mã vạch. Hiện tại bạn có thể nhập mã hoặc dùng máy quét mã."
     );
-
 }
 
 
-/* =========================
-   HÀM PHỤ
-========================= */
+function showScanMessage(message, success) {
 
-function showScanMessage(
-    message,
-    success
-) {
-
-    const element =
-        document.getElementById(
-            "scanMessage"
-        );
-
-
-    element.innerHTML =
-        `<span class="${
-            success
-            ? "success"
-            : "error"
-        }">
-            ${message}
+    document.getElementById("scanMessage").innerHTML =
+        `<span class="${success ? "success" : "error"}">
+            ${escapeHtml(message)}
         </span>`;
-
 }
 
 
 function formatNumber(number) {
 
-    return new Intl.NumberFormat(
-        "vi-VN"
-    ).format(number || 0);
-
+    return new Intl.NumberFormat("vi-VN").format(
+        Number(number) || 0
+    );
 }
 
 
 function escapeHtml(text) {
 
-    const div =
-        document.createElement("div");
-
-    div.textContent =
-        text || "";
-
+    const div = document.createElement("div");
+    div.textContent = text || "";
     return div.innerHTML;
-
 }
 
 </script>
